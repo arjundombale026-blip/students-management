@@ -1,0 +1,132 @@
+#include <stdio.h>
+
+struct Student
+{
+    int id;
+    char name[30];
+    float marks;
+};
+
+void add()
+{
+    FILE *f = fopen("students.dat", "ab");
+    struct Student s;
+
+    if(f == NULL)
+    {
+        printf("File error!\n");
+        return;
+    }
+
+    printf("Enter ID, Name and Marks: ");
+    scanf("%d %29s %f", &s.id, s.name, &s.marks);
+
+    fwrite(&s, sizeof(s), 1, f);
+    fclose(f);
+    printf("Student added!\n");
+}
+
+void display()
+{
+    FILE *f = fopen("students.dat", "rb");
+    struct Student s;
+
+    if(f == NULL)
+    {
+        printf("No records found.\n");
+        return;
+    }
+
+    while(fread(&s, sizeof(s), 1, f))
+        printf("ID:%d Name:%s Marks:%.2f\n",
+               s.id, s.name, s.marks);
+
+    fclose(f);
+}
+
+void search()
+{
+    FILE *f = fopen("students.dat", "rb");
+    struct Student s;
+    int id, found = 0;
+
+    if(f == NULL)
+    {
+        printf("No records found.\n");
+        return;
+    }
+
+    printf("Enter ID to search: ");
+    scanf("%d", &id);
+
+    while(fread(&s, sizeof(s), 1, f))
+        if(s.id == id)
+        {
+            printf("ID:%d Name:%s Marks:%.2f\n",
+                   s.id, s.name, s.marks);
+            found = 1;
+            break;
+        }
+
+    if(!found)
+        printf("Student not found.\n");
+
+    fclose(f);
+}
+
+void deleteStudent()
+{
+    FILE *f = fopen("students.dat", "rb");
+    FILE *t = fopen("temp.dat", "wb");
+    struct Student s;
+    int id, found = 0;
+
+    if(f == NULL || t == NULL)
+    {
+        if(f) fclose(f);
+        if(t) fclose(t);
+        printf("File error!\n");
+        return;
+    }
+
+    printf("Enter ID to delete: ");
+    scanf("%d", &id);
+
+    while(fread(&s, sizeof(s), 1, f))
+        if(s.id == id)
+            found = 1;
+        else
+            fwrite(&s, sizeof(s), 1, t);
+
+    fclose(f);
+    fclose(t);
+
+    remove("students.dat");
+    rename("temp.dat", "students.dat");
+
+    printf(found ? "Student deleted.\n" : "Student not found.\n");
+}
+
+int main()
+{
+    int ch;
+
+    do
+    {
+        printf("\n1.Add 2.Display 3.Search 4.Delete 5.Exit\n");
+        printf("Enter choice: ");
+        scanf("%d", &ch);
+
+        switch(ch)
+        {
+            case 1: add(); break;
+            case 2: display(); break;
+            case 3: search(); break;
+            case 4: deleteStudent(); break;
+            case 5: printf("Exit\n"); break;
+            default: printf("Invalid choice!\n");
+        }
+    } while(ch != 5);
+
+    return 0;
+}
